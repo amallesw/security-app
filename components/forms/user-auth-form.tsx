@@ -19,6 +19,7 @@ import GoogleSignInButton from "../github-auth-button";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Enter a valid email address" }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
 });
 
 type UserFormValue = z.infer<typeof formSchema>;
@@ -28,7 +29,7 @@ export default function UserAuthForm() {
   const callbackUrl = searchParams.get("callbackUrl");
   const [loading, setLoading] = useState(false);
   const defaultValues = {
-    email: "demo@gmail.com",
+    // email: "demo@gmail.com",
   };
   const form = useForm<UserFormValue>({
     resolver: zodResolver(formSchema),
@@ -38,52 +39,80 @@ export default function UserAuthForm() {
   const onSubmit = async (data: UserFormValue) => {
     signIn("credentials", {
       email: data.email,
+      password: data.password,
+      redirect: false,
       callbackUrl: callbackUrl ?? "/dashboard",
     });
   };
 
   return (
-    <>
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-2 w-full"
-        >
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="Enter your email..."
-                    disabled={loading}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+    <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col items-center justify-center space-y-6">
+      <Input
+        {...form.register('email')}
+        placeholder="Email"
+        type="email"
+        className="w-full"
+      />
+      {form.formState.errors.email && <p className="text-red-500">{form.formState.errors.email.message}</p>}
 
-          <Button disabled={loading} className="ml-auto w-full" type="submit">
-            Continue With Email
-          </Button>
-        </form>
-      </Form>
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
-            Or continue with
-          </span>
-        </div>
-      </div>
-      <GoogleSignInButton />
-    </>
+      <Input
+        {...form.register('password')}
+        placeholder="Password"
+        type="password"
+        className="w-full"
+      />
+      {form.formState.errors.password && <p className="text-red-500">{form.formState.errors.password.message}</p>}
+
+      <Button type="submit" className="w-full">
+        Log In
+      </Button>
+    </form>
   );
+
+  // return (
+  //   <>
+  //     <Form {...form}>
+  //       <form
+  //         onSubmit={form.handleSubmit(onSubmit)}
+  //         className="space-y-2 w-full"
+  //       >
+  //         <FormField
+  //           control={form.control}
+  //           name="email"
+  //           render={({ field }) => (
+  //             <FormItem>
+  //               <FormLabel>Email</FormLabel>
+  //               <FormControl>
+  //                 <Input
+  //                   type="email"
+  //                   placeholder="Enter your email..."
+  //                   disabled={loading}
+  //                   {...field}
+  //                 />
+  //               </FormControl>
+  //               <FormMessage />
+  //             </FormItem>
+  //           )}
+  //         />
+
+  //         <Button disabled={loading} className="ml-auto w-full" type="submit">
+  //           Continue With Email
+  //         </Button>
+  //       </form>
+  //     </Form>
+  //     <div className="relative">
+  //       <div className="absolute inset-0 flex items-center">
+  //         <span className="w-full border-t" />
+  //       </div>
+  //       <div className="relative flex justify-center text-xs uppercase">
+  //         <span className="bg-background px-2 text-muted-foreground">
+  //           Or continue with
+  //         </span>
+  //       </div>
+  //     </div>
+  //     <GoogleSignInButton />
+  //   </>
+  // );
 }
+
+

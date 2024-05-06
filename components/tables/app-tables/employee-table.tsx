@@ -48,6 +48,45 @@ interface DataTableProps<TData, TValue> {
   };
 }
 
+import { Card, CardHeader } from '@/components/ui/card';
+
+console.log(Card)
+
+
+// DEFINING APP CARD COMPONENT
+interface AppCardProps{
+  appName: string;
+  appIcon: string;
+  appLink: string;
+}
+// export const AppCard: React.FC<AppCardProps> = ({ appName, appIcon, appLink }) => {
+//   return (
+//     <a href={appLink} className="block p-4 max-w-sm bg-white rounded-lg border border-gray-200 shadow-md hover:bg-gray-100">
+//       <div className="flex flex-col items-center justify-center">
+//         <img src={appIcon} alt={`${appName} logo`} className="mb-2 w-12 h-12"/>
+//         <h5 className="mb-2 text-sm font-bold tracking-tight text-gray-900">{appName}</h5>
+//       </div>
+//     </a>
+//   );
+// };
+
+export const AppCard: React.FC<AppCardProps> = ({ appName, appIcon, appLink }) => {
+  const loginPageUrl = "/";
+  return (
+    <a href={loginPageUrl} className="m-2">
+      <Card className="bg-white shadow-md hover:bg-gray-100 transition-shadow duration-300 p-6 flex flex-col items-center justify-center" style={{ minWidth: '200px', maxWidth: '300px', height: 'auto' }}>
+        <img src={appIcon} alt={`${appName} logo`} className="mb-4 w-16 h-16" />
+        <div className="text-sm font-bold text-gray-700 capitalize">{appName}</div>
+      </Card>
+    </a>
+  );
+};
+
+
+
+
+// END OF APP CARD COMPONENT
+
 export function EmployeeTable<TData, TValue>({
   columns,
   data,

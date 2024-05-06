@@ -2,7 +2,7 @@
 import * as z from "zod";
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { Trash } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
@@ -18,13 +18,15 @@ import {
 } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
 import { Heading } from "@/components/ui/heading";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "@/components/ui/select";
+
+import Select from 'react-select';
 import { Checkbox } from "@/components/ui/checkbox";
 // import FileUpload from "@/components/FileUpload";
 import { useToast } from "../ui/use-toast";
@@ -40,29 +42,80 @@ const ImgSchema = z.object({
   url: z.string(),
 });
 export const IMG_MAX_LIMIT = 3;
+
+const customStyles = {
+  control: (provided, state) => ({
+    ...provided,
+    background: '#212121',
+    color: state.isFocused ? 'white' : 'black',
+    borderColor: state.isFocused ? '#4A90E2' : 'black',
+    boxShadow: state.isFocused ? '0 0 0 1px #4A90E2' : 'none',
+    '&:hover': {
+      borderColor: state.isFocused ? '#4A90E2' : '#aaa'
+    }
+  }),
+  menu: (provided) => ({
+    ...provided,
+    background: '#212121', // Set the dropdown background color
+    color: 'white', // Ensure text color is white for all items
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    background: state.isFocused ? '#333333' : '#212121', // Darker when item is focused
+    color: state.isSelected ? '#FFF' : 'white',
+    '&:hover': {
+      background: '#333333', // Darker background on hover
+    }
+  }),
+  multiValue: (styles) => ({
+    ...styles,
+    backgroundColor: '#4A5568',
+  }),
+  multiValueLabel: (styles) => ({
+    ...styles,
+    color: 'white',
+  }),
+  multiValueRemove: (styles) => ({
+    ...styles,
+    color: 'white',
+    ':hover': {
+      backgroundColor: '#2b2d42',
+      color: 'white',
+    },
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    color: 'white', // Ensures text color within the select control is white
+  }),
+};
+
 const formSchema = z.object({
-  name: z
-    .string()
-    .min(3, { message: "Product Name must be at least 3 characters" }),
-  imgUrl: z
-    .array(ImgSchema)
-    .max(IMG_MAX_LIMIT, { message: "You can only add up to 3 images" })
-    .min(1, { message: "At least one image must be added." }),
-  description: z
-    .string()
-    .min(3, { message: "Product description must be at least 3 characters" }),
-  price: z.coerce.number(),
-  category: z.string().min(1, { message: "Please select a category" }),
+  name: z.string().min(3, { message: "Name must be at least 3 characters" }),
+  email: z.string().email({ message: "Enter a valid email address" }),
+  apps: z.array(z.string()).min(1, { message: "Select at least one app" }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters long" }),
 });
 
-type ProductFormValues = z.infer<typeof formSchema>;
+const appsOptions = [
+  { id: 'app1', name: 'Google Gmail' },
+  { id: 'app2', name: 'Slack' },
+  { id: 'app3', name: 'Slack' },
+  { id: 'app4', name: 'Slack' },
+  { id: 'app5', name: 'Slack' },
+  { id: 'app6', name: 'Slack' },
+  { id: 'app7', name: 'Slack' },
+  { id: 'app8', name: 'Slack' },
+  // Add more apps as needed
+];
 
-interface ProductFormProps {
+type EmployeeFormValues = z.infer<typeof formSchema>;
+
+interface EmployeeFormProps {
   initialData: any | null;
   categories: any;
 }
 
-export const ProductForm: React.FC<ProductFormProps> = ({
+export const EmployeeForm: React.FC<EmployeeFormProps> = ({
   initialData,
   categories,
 }) => {
@@ -80,19 +133,19 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   const defaultValues = initialData
     ? initialData
     : {
-        name: "",
-        description: "",
-        price: 0,
-        imgUrl: [],
-        category: "",
-      };
+      name: "",
+      description: "",
+      price: 0,
+      imgUrl: [],
+      category: "",
+    };
 
-  const form = useForm<ProductFormValues>({
+  const form = useForm<EmployeeFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues,
   });
 
-  const onSubmit = async (data: ProductFormValues) => {
+  const onSubmit = async (data: EmployeeFormValues) => {
     try {
       setLoading(true);
       if (initialData) {
@@ -102,7 +155,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         // console.log("product", res);
       }
       router.refresh();
-      router.push(`/dashboard/products`);
+      router.push(`/dashboard/employees/${params.employeeId}`);
       toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong.",
@@ -132,139 +185,57 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     }
   };
 
-  const triggerImgUrlValidation = () => form.trigger("imgUrl");
+  // const triggerImgUrlValidation = () => form.trigger("imgUrl");
+
+
+
 
   return (
-    <>
-      {/* <AlertModal
-        isOpen={open}
-        onClose={() => setOpen(false)}
-        onConfirm={onDelete}
-        loading={loading}
-      /> */}
-      <div className="flex items-center justify-between">
-        <Heading title={title} description={description} />
-        {initialData && (
-          <Button
-            disabled={loading}
-            variant="destructive"
-            size="sm"
-            onClick={() => setOpen(true)}
-          >
-            <Trash className="h-4 w-4" />
-          </Button>
-        )}
-      </div>
-      <Separator />
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-8 w-full"
-        >
-          <FormField
-            control={form.control}
-            name="imgUrl"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Images</FormLabel>
-                <FormControl>
-                  <FileUpload
-                    onChange={field.onChange}
-                    value={field.value}
-                    onRemove={field.onChange}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <div className="md:grid md:grid-cols-3 gap-8">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      disabled={loading}
-                      placeholder="Product name"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <div className="grid grid-cols-2 gap-6">
+        <div>
+          <Input {...form.register('name')} placeholder="Name" />
+          {form.formState.errors.name && <p>{form.formState.errors.name.message}</p>}
+        </div>
+        <div>
+          <Input {...form.register('email')} type="email" placeholder="Email" />
+          {form.formState.errors.email && <p>{form.formState.errors.email.message}</p>}
+        </div>
+        <div>
+          {/* <Select>
+            <SelectTrigger>
+              <SelectValue placeholder="Select Apps" />
+            </SelectTrigger>
+            <SelectContent>
+              {appsOptions.map((app) => (
+                <SelectItem key={app.id} value={app.id}>
+                  {app.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select> */}
+
+          <div>
+            <Select
+              isMulti
+              options={appsOptions}
+              placeholder="Select Apps"
+              className="basic-multi-select"
+              classNamePrefix="select"
+              styles={customStyles}
             />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Input
-                      disabled={loading}
-                      placeholder="Product description"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="price"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Price</FormLabel>
-                  <FormControl>
-                    <Input type="number" disabled={loading} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
-                  <Select
-                    disabled={loading}
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue
-                          defaultValue={field.value}
-                          placeholder="Select a category"
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {/* @ts-ignore  */}
-                      {categories.map((category) => (
-                        <SelectItem key={category._id} value={category._id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {form.formState.errors.apps && <p>{form.formState.errors.apps.message}</p>}
           </div>
-          <Button disabled={loading} className="ml-auto" type="submit">
-            {action}
-          </Button>
-        </form>
-      </Form>
-    </>
+
+
+          {form.formState.errors.apps && <p>{form.formState.errors.apps.message}</p>}
+        </div>
+        <div>
+          <Input {...form.register('password')} type="password" placeholder="Password" />
+          {form.formState.errors.password && <p>{form.formState.errors.password.message}</p>}
+        </div>
+      </div>
+      <Button type="submit">Add Employee</Button>
+    </form>
   );
 };

@@ -21,25 +21,25 @@ export const columns: ColumnDef<User>[] = [
         aria-label="Select row"
       />
     ),
-    enableSorting: false,
-    enableHiding: false,
+    enableSorting: true,
+    enableHiding: true,
   },
   {
     accessorKey: "name",
     header: "NAME",
   },
   {
-    accessorKey: "company",
-    header: "COMPANY",
+    accessorKey: "email",
+    header: "EMAIL",
   },
   {
-    accessorKey: "role",
-    header: "ROLE",
+    accessorKey: "apps",
+    header: "APPS",
   },
-  {
-    accessorKey: "status",
-    header: "STATUS",
-  },
+  // {
+  //   accessorKey: "status",
+  //   header: "STATUS",
+  // },
   {
     id: "actions",
     cell: ({ row }) => <CellAction data={row.original} />,
