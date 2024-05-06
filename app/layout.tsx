@@ -9,7 +9,7 @@ import { getServerSession } from "next-auth";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Next Shadcn",
+  title: "Security",
   description: "Basic dashboard with Next.js and Shadcn",
 };
 
